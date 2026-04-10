@@ -432,8 +432,9 @@ input, select, textarea, button { font-family: inherit; }
       <div class="export-title" style="font-size:13px;color:var(--text3)">Cara install sebagai aplikasi HP</div>
       <div class="export-desc" style="margin-bottom:0">
         <b style="color:var(--text2)">Android (Chrome):</b> Ketuk ⋮ → "Add to Home screen" → Install<br><br>
-        <b style="color:var(--text2)">iPhone (Safari):</b> Ketuk □↑ → "Add to Home Screen" → Add<br><br>
-        <b style="color:var(--text2)">More Info :</b> Hub → muhamadfatwa26@gmail.com
+        <b style="color:var(--text2)">iPhone (Safari):</b> Ketuk □↑ → "Add to Home Screen" → Add
+        <b style="color:var(--text2)">More Info:</b> Hub → "muhamadfatwa26@gmail.com"
+        versi V.6
       </div>
     </div>
   </div>
@@ -1437,29 +1438,42 @@ function stopBlast() {
 
 // ── DOUBLE BACK TO EXIT ──
 let backPressedOnce = false;
-document.addEventListener('backbutton', onBackButton, false);
-window.addEventListener('popstate', onBackButton);
 
-function onBackButton(e) {
-  // If blast panel is open, close it first
+// Push dummy state so Android back has something to intercept
+history.pushState({ page: 'app' }, '');
+
+window.addEventListener('popstate', function() {
+  // Blast panel open → close it
   if (document.getElementById('blastPanel').classList.contains('open')) {
-    closeBlastPanel(); return;
+    closeBlastPanel();
+    history.pushState({ page: 'app' }, '');
+    return;
   }
-  // If any modal is open, close it
+  // Any modal open → close it
   const openModal = document.querySelector('.modal-overlay.open');
-  if (openModal) { openModal.classList.remove('open'); return; }
-  // If confirm overlay open, close it
-  if (document.getElementById('confirmOverlay').classList.contains('open')) {
-    closeConfirm(); return;
+  if (openModal) {
+    openModal.classList.remove('open');
+    history.pushState({ page: 'app' }, '');
+    return;
   }
-  // If blast progress visible, ignore back
-  if (document.getElementById('blastProgressOverlay').style.display === 'flex') return;
+  // Confirm overlay open → close it
+  if (document.getElementById('confirmOverlay').classList.contains('open')) {
+    closeConfirm();
+    history.pushState({ page: 'app' }, '');
+    return;
+  }
+  // Blast progress visible → ignore
+  if (document.getElementById('blastProgressOverlay').style.display === 'flex') {
+    history.pushState({ page: 'app' }, '');
+    return;
+  }
   // Double back to exit
-  if (backPressedOnce) { window.close(); return; }
+  if (backPressedOnce) return; // browser/OS akan keluar sendiri
   backPressedOnce = true;
   showToast('Tekan sekali lagi untuk keluar');
+  history.pushState({ page: 'app' }, '');
   setTimeout(() => { backPressedOnce = false; }, 2000);
-}
+});
 
 renderStats(); renderChips(); renderCustomers();
 </script>
