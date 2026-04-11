@@ -312,7 +312,7 @@ input, select, textarea, button { font-family: inherit; }
       </div>
       <div>
         <div class="header-title">FurniCRM</div>
-        <div class="header-sub">Sales Furniture Manager</div>
+        <div class="header-sub">Sales Furniture Manager V.7</div>
       </div>
     </div>
     <button class="btn-add" id="headerBtn" onclick="openAddCustomer()">
@@ -433,8 +433,6 @@ input, select, textarea, button { font-family: inherit; }
       <div class="export-desc" style="margin-bottom:0">
         <b style="color:var(--text2)">Android (Chrome):</b> Ketuk ⋮ → "Add to Home screen" → Install<br><br>
         <b style="color:var(--text2)">iPhone (Safari):</b> Ketuk □↑ → "Add to Home Screen" → Add
-        <b style="color:var(--text2)">More Info:</b> Hub → "muhamadfatwa26@gmail.com"
-        versi V.6
       </div>
     </div>
   </div>
@@ -1480,7 +1478,19 @@ renderStats(); renderChips(); renderCustomers();
 
 <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  navigator.serviceWorker.register('./sw.js').then(reg => {
+    // Cek update setiap kali app dibuka
+    reg.update();
+    // Kalau ada SW baru siap, reload otomatis
+    reg.addEventListener('updatefound', () => {
+      const newSW = reg.installing;
+      newSW.addEventListener('statechange', () => {
+        if (newSW.state === 'activated') {
+          window.location.reload();
+        }
+      });
+    });
+  }).catch(() => {});
 }
 </script>
 </body>
