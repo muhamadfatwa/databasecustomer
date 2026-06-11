@@ -350,7 +350,7 @@ input, select, textarea, button { font-family: inherit; }
       </div>
       <div>
         <div class="header-title">FurniCRM</div>
-        <div class="header-sub">Sales Furniture Manager_V.1.1</div>
+        <div class="header-sub">Sales Furniture Manager</div>
       </div>
     </div>
     <button class="btn-add" id="headerBtn" onclick="openAddCustomer()">
@@ -1671,9 +1671,22 @@ function previewImport() {
   let newCount = 0, dupCount = 0, errCount = 0;
   importParsed = [];
 
+  // Normalize nomor WA ke format standar untuk perbandingan
+  function normalizeWa(n) {
+    let w = n.replace(/\D/g,'');
+    if (w.startsWith('62')) w = '0' + w.slice(2);
+    if (w.startsWith('0')) return w;
+    return '0' + w;
+  }
+
+  // Set nomor yang sudah ada di database + yang sudah diproses di CSV ini
+  const existingWa = new Set(customers.map(c => normalizeWa(c.wa)));
+  const seenWaInFile = new Set();
+
   importRawRows.forEach(row => {
     const nama = (row[iNama] || '').trim();
-    const wa = (row[iWa] || '').replace(/\D/g,'').trim();
+    const waRaw = (row[iWa] || '').trim();
+    const wa = normalizeWa(waRaw);
     const produk = iProduk >= 0 && !isNaN(iProduk) ? (row[iProduk] || '').trim() : '';
     let status = iStatus >= 0 && !isNaN(iStatus) ? (row[iStatus] || '').trim() : 'Warm';
     const catatan = iCatatan >= 0 && !isNaN(iCatatan) ? (row[iCatatan] || '').trim() : '';
@@ -1687,8 +1700,16 @@ function previewImport() {
     else if (sl.includes('cold') || sl.includes('dingin')) status = 'Cold';
     else status = 'Warm';
 
-    const isDup = customers.some(c => c.wa.replace(/\D/g,'') === wa);
-    if (isDup) { importParsed.push({nama, wa, produk, status, catatan, _dup:true}); dupCount++; return; }
+    // Cek duplikat: nomor WA saja (nama boleh sama)
+    const isDupWa = existingWa.has(wa) || seenWaInFile.has(wa);
+
+    if (isDupWa) {
+      importParsed.push({nama, wa, produk, status, catatan, _dup:true, _dupReason: `No WA ${wa} sudah ada`});
+      dupCount++; return;
+    }
+
+    // Tandai sudah diproses
+    seenWaInFile.add(wa);
     importParsed.push({nama, wa, produk, status, catatan, _new:true}); newCount++;
   });
   document.getElementById('importColMap').classList.remove('show');
@@ -1696,7 +1717,7 @@ function previewImport() {
   document.getElementById('importPreviewCount').textContent = importRawRows.length + ' baris ditemukan';
   document.getElementById('importPreviewList').innerHTML = importParsed.map(r => {
     if (r._err) return `<div class="import-preview-row"><div class="import-row-status import-row-err"></div><div class="import-row-text"><div class="import-row-name">${r.nama||'(kosong)'}</div><div class="import-row-meta">Error: ${r._err}</div></div><span class="import-row-tag tag-err">Gagal</span></div>`;
-    if (r._dup) return `<div class="import-preview-row"><div class="import-row-status import-row-dup"></div><div class="import-row-text"><div class="import-row-name">${r.nama}</div><div class="import-row-meta">📱 ${r.wa} · sudah ada</div></div><span class="import-row-tag tag-dup">Duplikat</span></div>`;
+    if (r._dup) return `<div class="import-preview-row"><div class="import-row-status import-row-dup"></div><div class="import-row-text"><div class="import-row-name">${r.nama}</div><div class="import-row-meta">⚠️ ${r._dupReason||'sudah ada'}</div></div><span class="import-row-tag tag-dup">Duplikat</span></div>`;
     return `<div class="import-preview-row"><div class="import-row-status import-row-new"></div><div class="import-row-text"><div class="import-row-name">${r.nama}</div><div class="import-row-meta">📱 ${r.wa}${r.produk?' · '+r.produk:''} · ${r.status}</div></div><span class="import-row-tag tag-new">Baru</span></div>`;
   }).join('');
   document.getElementById('importSummary').innerHTML = `
