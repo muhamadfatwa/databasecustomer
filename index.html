@@ -164,6 +164,44 @@ input, select, textarea, button { font-family: inherit; }
 .export-card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 16px; margin-bottom: 12px; }
 .export-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
 .export-desc { font-size: 12px; color: var(--text3); margin-bottom: 14px; line-height: 1.5; }
+
+/* ── IMPORT ── */
+.import-drop-area { border: 2px dashed var(--border2); border-radius: var(--radius); padding: 24px 16px; text-align: center; cursor: pointer; background: var(--bg); position: relative; transition: border-color .15s, background .15s; }
+.import-drop-area.dragover { border-color: var(--accent); background: var(--surface2); }
+.import-drop-area svg { width: 32px; height: 32px; stroke: var(--text3); fill: none; margin-bottom: 8px; }
+.import-drop-area p { font-size: 13px; color: var(--text3); line-height: 1.6; }
+.import-drop-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.import-preview { margin-top: 12px; background: var(--surface2); border-radius: var(--radius-sm); overflow: hidden; display: none; }
+.import-preview.show { display: block; }
+.import-preview-head { padding: 10px 13px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); }
+.import-preview-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.import-preview-count { font-size: 11px; color: var(--text3); }
+.import-preview-list { max-height: 180px; overflow-y: auto; }
+.import-preview-row { padding: 9px 13px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+.import-preview-row:last-child { border-bottom: none; }
+.import-row-status { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.import-row-new { background: var(--green); }
+.import-row-dup { background: var(--amber); }
+.import-row-err { background: #e53e3e; }
+.import-row-text { flex: 1; min-width: 0; }
+.import-row-name { font-size: 13px; font-weight: 500; color: var(--text); }
+.import-row-meta { font-size: 11px; color: var(--text3); }
+.import-row-tag { font-size: 10px; padding: 1px 7px; border-radius: 10px; font-weight: 600; flex-shrink: 0; }
+.tag-new { background: var(--green-bg); color: var(--green); }
+.tag-dup { background: var(--amber-bg); color: var(--amber); }
+.tag-err { background: var(--red-bg); color: var(--red); }
+.import-summary { padding: 10px 13px; font-size: 12px; color: var(--text2); display: flex; gap: 12px; flex-wrap: wrap; }
+.import-sum-item { display: flex; align-items: center; gap: 4px; }
+.import-actions { display: flex; gap: 8px; margin-top: 10px; }
+.btn-import { flex: 1; padding: 12px; background: var(--accent); color: var(--accent-text); border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.btn-import:disabled { background: var(--surface2); color: var(--text3); cursor: not-allowed; }
+.btn-import-cancel { padding: 12px 16px; border: 1px solid var(--border2); border-radius: var(--radius-sm); background: transparent; color: var(--text2); font-size: 13px; cursor: pointer; }
+.import-col-map { background: var(--surface2); border-radius: var(--radius-sm); padding: 12px 13px; margin-top: 10px; display: none; }
+.import-col-map.show { display: block; }
+.import-col-map-title { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 8px; }
+.import-col-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 12px; }
+.import-col-label { color: var(--text2); width: 80px; flex-shrink: 0; }
+.import-col-select { flex: 1; padding: 5px 8px; border: 1px solid var(--border2); border-radius: 6px; background: var(--bg); color: var(--text); font-size: 12px; outline: none; }
 .filter-export-row { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
 .btn-export { width: 100%; padding: 13px; background: var(--accent); color: var(--accent-text); border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
 .btn-export svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
@@ -312,7 +350,7 @@ input, select, textarea, button { font-family: inherit; }
       </div>
       <div>
         <div class="header-title">FurniCRM</div>
-        <div class="header-sub">Sales Furniture Manager V.7</div>
+        <div class="header-sub">Sales Furniture Manager_V.8</div>
       </div>
     </div>
     <button class="btn-add" id="headerBtn" onclick="openAddCustomer()">
@@ -404,7 +442,64 @@ input, select, textarea, button { font-family: inherit; }
 <!-- PAGE: EXPORT -->
 <div class="page" id="page-export">
   <div class="export-section">
+
+    <!-- IMPORT CARD -->
     <div class="export-card">
+      <div class="export-title">📥 Import Data Customer</div>
+      <div class="export-desc">Upload file CSV atau Excel untuk memasukkan banyak customer sekaligus. Data lama <b>tidak akan terhapus</b> — hanya ditambahkan.</div>
+
+      <!-- Drop area -->
+      <div class="import-drop-area" id="importDropArea">
+        <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <p><b>Ketuk untuk pilih file</b><br>Format: .csv · .xlsx · .xls<br><span style="font-size:11px">Kolom minimal: Nama, No WA</span></p>
+        <input type="file" id="importFileInput" accept=".csv,.xlsx,.xls,text/csv" onchange="handleImportFile(event)">
+      </div>
+
+      <!-- Column mapping -->
+      <div class="import-col-map" id="importColMap">
+        <div class="import-col-map-title">Cocokkan kolom file dengan data customer:</div>
+        <div class="import-col-row">
+          <span class="import-col-label">Nama *</span>
+          <select class="import-col-select" id="mapNama"></select>
+        </div>
+        <div class="import-col-row">
+          <span class="import-col-label">No WA *</span>
+          <select class="import-col-select" id="mapWa"></select>
+        </div>
+        <div class="import-col-row">
+          <span class="import-col-label">Produk</span>
+          <select class="import-col-select" id="mapProduk"></select>
+        </div>
+        <div class="import-col-row">
+          <span class="import-col-label">Status</span>
+          <select class="import-col-select" id="mapStatus"></select>
+        </div>
+        <div class="import-col-row">
+          <span class="import-col-label">Catatan</span>
+          <select class="import-col-select" id="mapCatatan"></select>
+        </div>
+        <button class="btn-import" onclick="previewImport()" style="margin-top:8px;font-size:13px;padding:9px">
+          Preview Data →
+        </button>
+      </div>
+
+      <!-- Preview hasil parsing -->
+      <div class="import-preview" id="importPreview">
+        <div class="import-preview-head">
+          <span class="import-preview-title">Preview Import</span>
+          <span class="import-preview-count" id="importPreviewCount"></span>
+        </div>
+        <div class="import-preview-list" id="importPreviewList"></div>
+        <div class="import-summary" id="importSummary"></div>
+        <div class="import-actions">
+          <button class="btn-import-cancel" onclick="resetImport()">Batal</button>
+          <button class="btn-import" id="btnDoImport" onclick="doImport()">
+            <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Import Sekarang
+          </button>
+        </div>
+      </div>
+    </div>
       <div class="export-title">Export Data Customer</div>
       <div class="export-desc">Download semua data customer ke file Excel (.csv) yang bisa dibuka di Google Sheets atau Microsoft Excel.</div>
       <div class="filter-export-row">
@@ -1472,6 +1567,129 @@ window.addEventListener('popstate', function() {
   history.pushState({ page: 'app' }, '');
   setTimeout(() => { backPressedOnce = false; }, 2000);
 });
+
+// ── IMPORT ──
+let importRawRows = [];
+let importHeaders = [];
+let importParsed = [];
+
+function handleImportFile(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (ext === 'csv') {
+    const reader = new FileReader();
+    reader.onload = ev => parseCSV(ev.target.result);
+    reader.readAsText(file, 'UTF-8');
+  } else {
+    showToast('Format tidak didukung. Gunakan .csv');
+  }
+}
+
+function parseCSV(text) {
+  text = text.replace(/^\uFEFF/, '');
+  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  if (lines.length < 2) { showToast('File kosong atau tidak valid'); return; }
+  const delim = lines[0].includes(';') ? ';' : ',';
+  function parseLine(line) {
+    const result = []; let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') { inQ = !inQ; }
+      else if (ch === delim && !inQ) { result.push(cur.trim()); cur = ''; }
+      else { cur += ch; }
+    }
+    result.push(cur.trim()); return result;
+  }
+  importHeaders = parseLine(lines[0]).map(h => h.replace(/^"|"$/g,'').trim());
+  importRawRows = lines.slice(1).map(l => {
+    const vals = parseLine(l); const obj = {};
+    importHeaders.forEach((h, i) => obj[h] = (vals[i] || '').replace(/^"|"$/g,''));
+    return obj;
+  }).filter(r => Object.values(r).some(v => v));
+  if (!importHeaders.length) { showToast('Tidak bisa membaca header kolom'); return; }
+  populateColMaps();
+  document.getElementById('importColMap').classList.add('show');
+  document.getElementById('importDropArea').style.display = 'none';
+}
+
+function populateColMaps() {
+  const maps = ['mapNama','mapWa','mapProduk','mapStatus','mapCatatan'];
+  const autoMap = {
+    mapNama:    ['nama','name','customer','pelanggan','nama lengkap','full name'],
+    mapWa:      ['wa','whatsapp','no wa','no. wa','no hp','hp','phone','telepon','nomor','nohp'],
+    mapProduk:  ['produk','product','minat','minat produk','barang','item'],
+    mapStatus:  ['status','lead','status lead'],
+    mapCatatan: ['catatan','note','notes','keterangan','ket']
+  };
+  maps.forEach(mapId => {
+    const sel = document.getElementById(mapId);
+    sel.innerHTML = ['— Pilih kolom —', ...importHeaders].map((h,i) => `<option value="${i===0?'':h}">${h}</option>`).join('');
+    const match = importHeaders.find(h => (autoMap[mapId]||[]).includes(h.toLowerCase()));
+    if (match) sel.value = match;
+  });
+}
+
+function previewImport() {
+  const colNama = document.getElementById('mapNama').value;
+  const colWa = document.getElementById('mapWa').value;
+  const colProduk = document.getElementById('mapProduk').value;
+  const colStatus = document.getElementById('mapStatus').value;
+  const colCatatan = document.getElementById('mapCatatan').value;
+  if (!colNama || !colWa) { showToast('Kolom Nama dan No WA wajib dipilih!'); return; }
+  let newCount = 0, dupCount = 0, errCount = 0;
+  importParsed = [];
+  importRawRows.forEach(row => {
+    const nama = (row[colNama]||'').trim();
+    const wa = (row[colWa]||'').replace(/\D/g,'').trim();
+    const produk = colProduk ? (row[colProduk]||'').trim() : '';
+    let status = colStatus ? (row[colStatus]||'').trim() : 'Warm';
+    const catatan = colCatatan ? (row[colCatatan]||'').trim() : '';
+    if (!nama) { importParsed.push({_err:'Nama kosong',_raw:row}); errCount++; return; }
+    if (!wa||wa.length<8) { importParsed.push({_err:'No WA tidak valid',nama,_raw:row}); errCount++; return; }
+    const sl = status.toLowerCase();
+    if (sl.includes('hot')) status='Hot';
+    else if (sl.includes('warm')||sl.includes('hangat')) status='Warm';
+    else if (sl.includes('cold')||sl.includes('dingin')) status='Cold';
+    else status='Warm';
+    const isDup = customers.some(c => c.wa.replace(/\D/g,'')===wa);
+    if (isDup) { importParsed.push({nama,wa,produk,status,catatan,_dup:true}); dupCount++; return; }
+    importParsed.push({nama,wa,produk,status,catatan,_new:true}); newCount++;
+  });
+  document.getElementById('importColMap').classList.remove('show');
+  document.getElementById('importPreview').classList.add('show');
+  document.getElementById('importPreviewCount').textContent = importRawRows.length + ' baris ditemukan';
+  document.getElementById('importPreviewList').innerHTML = importParsed.map(r => {
+    if (r._err) return `<div class="import-preview-row"><div class="import-row-status import-row-err"></div><div class="import-row-text"><div class="import-row-name">${r.nama||'(kosong)'}</div><div class="import-row-meta">Error: ${r._err}</div></div><span class="import-row-tag tag-err">Gagal</span></div>`;
+    if (r._dup) return `<div class="import-preview-row"><div class="import-row-status import-row-dup"></div><div class="import-row-text"><div class="import-row-name">${r.nama}</div><div class="import-row-meta">📱 ${r.wa} · sudah ada</div></div><span class="import-row-tag tag-dup">Duplikat</span></div>`;
+    return `<div class="import-preview-row"><div class="import-row-status import-row-new"></div><div class="import-row-text"><div class="import-row-name">${r.nama}</div><div class="import-row-meta">📱 ${r.wa}${r.produk?' · '+r.produk:''} · ${r.status}</div></div><span class="import-row-tag tag-new">Baru</span></div>`;
+  }).join('');
+  document.getElementById('importSummary').innerHTML = `
+    <div class="import-sum-item"><div style="width:8px;height:8px;border-radius:50%;background:var(--green)"></div> ${newCount} baru</div>
+    <div class="import-sum-item"><div style="width:8px;height:8px;border-radius:50%;background:var(--amber)"></div> ${dupCount} duplikat (dilewati)</div>
+    <div class="import-sum-item"><div style="width:8px;height:8px;border-radius:50%;background:#e53e3e"></div> ${errCount} error</div>`;
+  const btn = document.getElementById('btnDoImport');
+  btn.disabled = newCount===0;
+  btn.textContent = newCount>0 ? `Import ${newCount} Customer` : 'Tidak ada data baru';
+}
+
+function doImport() {
+  const toAdd = importParsed.filter(r => r._new);
+  if (!toAdd.length) return;
+  const today = new Date().toISOString().split('T')[0];
+  toAdd.forEach(r => customers.push({id: Date.now()+Math.random(), nama:r.nama, wa:r.wa, produk:r.produk||'-', status:r.status, catatan:r.catatan, tgl:today}));
+  save(); renderStats(); renderCustomers();
+  showToast(`✓ ${toAdd.length} customer berhasil diimport!`);
+  resetImport();
+}
+
+function resetImport() {
+  importRawRows=[]; importHeaders=[]; importParsed=[];
+  document.getElementById('importDropArea').style.display='';
+  document.getElementById('importColMap').classList.remove('show');
+  document.getElementById('importPreview').classList.remove('show');
+  document.getElementById('importFileInput').value='';
+}
 
 renderStats(); renderChips(); renderCustomers();
 </script>
