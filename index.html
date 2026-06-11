@@ -350,7 +350,7 @@ input, select, textarea, button { font-family: inherit; }
       </div>
       <div>
         <div class="header-title">FurniCRM</div>
-        <div class="header-sub">Sales Furniture Manager_V.9</div>
+        <div class="header-sub">Sales Furniture Manager_v.9</div>
       </div>
     </div>
     <button class="btn-add" id="headerBtn" onclick="openAddCustomer()">
@@ -1588,7 +1588,16 @@ function handleImportFile(e) {
 
 function parseCSV(text) {
   text = text.replace(/^\uFEFF/, '');
-  const lines = text.split(/\r?\n/).filter(l => l.trim());
+  const allLines = text.split(/\r?\n/);
+
+  // Skip baris kosong di awal — cari baris pertama yang punya isi nyata
+  let startIdx = 0;
+  for (let i = 0; i < allLines.length; i++) {
+    const cleaned = allLines[i].replace(/,/g,'').replace(/;/g,'').trim();
+    if (cleaned) { startIdx = i; break; }
+  }
+
+  const lines = allLines.slice(startIdx).filter(l => l.replace(/,/g,'').replace(/;/g,'').trim());
   if (lines.length < 2) { showToast('File kosong atau tidak valid'); return; }
 
   // Deteksi delimiter
@@ -1613,7 +1622,7 @@ function parseCSV(text) {
 
   if (!importHeaders.length) { showToast('Tidak bisa membaca header kolom'); return; }
 
-  // Parse rows — simpan sebagai array supaya tidak ada masalah key matching
+  // Parse rows sebagai array of arrays
   importRawRows = lines.slice(1).map(l => {
     const vals = parseLine(l);
     return importHeaders.map((h, i) =>
@@ -1622,7 +1631,7 @@ function parseCSV(text) {
   }).filter(r => r.some(v => v));
 
   console.log('Headers:', importHeaders);
-  console.log('First row:', importRawRows[0]);
+  console.log('Rows:', importRawRows.length, 'First:', importRawRows[0]);
 
   populateColMaps();
   document.getElementById('importColMap').classList.add('show');
