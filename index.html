@@ -350,7 +350,7 @@ input, select, textarea, button { font-family: inherit; }
       </div>
       <div>
         <div class="header-title">FurniCRM</div>
-        <div class="header-sub">Sales Furniture Manager_v.9</div>
+        <div class="header-sub">Sales Furniture Manager</div>
       </div>
     </div>
     <button class="btn-add" id="headerBtn" onclick="openAddCustomer()">
@@ -1306,7 +1306,7 @@ function deletePromo(id) {
 function sharePromo(id) {
   const p = promos.find(x => x.id === id);
   const sk = p.sk ? `\n\n📋 *Syarat & Ketentuan:*\n${p.sk}` : '';
-  const msg = `🏷️ *${p.judul}*\n\n${p.desc||''}\n\n📅 Berlaku: ${formatDateShort(p.mulai)} – ${formatDateShort(p.akhir)}${sk}\n\nInfo & pemesanan hubungi kami ya! 😊`;
+  const msg = `Halo *{nama}* 👋\n\n🏷️ *${p.judul}*\n\n${p.desc||''}\n\n📅 Berlaku: ${formatDateShort(p.mulai)} – ${formatDateShort(p.akhir)}${sk}\n\nInfo & pemesanan hubungi kami ya! 😊`;
   openBlastPanel(p.judul, msg);
 }
 
